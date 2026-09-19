@@ -1,0 +1,6 @@
+{
+  "name": "Cinema Camera",
+  "description": "Professional Camera2 camera app with dedicated Photo, Video, and Cinema pipelines, custom aspect ratios, real lens detection, Hollywood LUTs, and manual controls.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
