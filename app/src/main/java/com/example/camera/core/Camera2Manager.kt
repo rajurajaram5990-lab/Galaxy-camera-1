@@ -166,6 +166,32 @@ class Camera2Manager(private val context: Context) {
     fun setPreviewSurface(surface: Surface?, surfaceTexture: SurfaceTexture? = null) {
         normalPreviewSurface = surface
         activeSurfaceTexture = surfaceTexture
+        surfaceTexture?.let { st ->
+            val lens = _activeLens.value
+            if (lens != null) {
+                try {
+                    val chars = cameraManager.getCameraCharacteristics(lens.id)
+                    val map = chars.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
+                    val previewSizes = map?.getOutputSizes(SurfaceTexture::class.java)
+                    if (!previewSizes.isNullOrEmpty()) {
+                        val targetRatio = when (currentMode) {
+                            CameraMode.PHOTO -> 4f / 3f
+                            CameraMode.VIDEO -> 16f / 9f
+                            CameraMode.CINEMA -> 16f / 9f
+                        }
+                        val chosen = previewSizes
+                            .filter { it.width <= 1920 && it.height <= 1080 }
+                            .minByOrNull {
+                                val r = it.width.toFloat() / it.height.toFloat()
+                                kotlin.math.abs(r - targetRatio)
+                            } ?: previewSizes[0]
+                        st.setDefaultBufferSize(chosen.width, chosen.height)
+                    }
+                } catch (e: Exception) {
+                    Log.e("Camera2Manager", "Error configuring preview buffer size", e)
+                }
+            }
+        }
         if (cameraDevice != null && currentMode != CameraMode.CINEMA) {
             startModeSession()
         }
@@ -490,21 +516,10 @@ class Camera2Manager(private val context: Context) {
     }
 
     fun configureTextureTransform(textureView: TextureView, viewWidth: Int, viewHeight: Int, aspectRatio: AspectRatio) {
-        val lens = _activeLens.value ?: return
-        val chars = try {
-            cameraManager.getCameraCharacteristics(lens.id)
-        } catch (e: Exception) {
-            return
-        }
-
-        val sensorOrientation = chars.get(CameraCharacteristics.SENSOR_ORIENTATION) ?: 90
+        if (viewWidth <= 0 || viewHeight <= 0) return
         val matrix = Matrix()
-        val viewRect = RectF(0f, 0f, viewWidth.toFloat(), viewHeight.toFloat())
-        val centerX = viewRect.centerX()
-        val centerY = viewRect.centerY()
-
-        // Handle display rotation and aspect ratio fitting
-        matrix.postRotate(sensorOrientation.toFloat(), centerX, centerY)
+        // The TextureView renders the SurfaceTexture which naturally matches portrait display orientation.
+        // Identity matrix ensures upright rendering without 90-degree unwanted rotation.
         textureView.setTransform(matrix)
     }
 

@@ -12,7 +12,7 @@ data class CinemaSettings(
     val profile: CinemaProfile = CinemaProfile.CINEMATIC,
     val codec: VideoCodec = VideoCodec.H265,
     val bitrate: CinemaBitrate = CinemaBitrate.HIGH,
-    val aspectRatio: AspectRatio = AspectRatio.RATIO_16_9,
+    val aspectRatio: AspectRatio = AspectRatio.RATIO_9_16,
     val lut: CinemaLut = CinemaLut.OPPENHEIMER,
     val lutIntensity: Int = 85, // 0..100%
     val isStabilizationEnabled: Boolean = true,

@@ -17,8 +17,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,18 +45,18 @@ fun ViewfinderContainer(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val currentMode = viewModel.currentMode
-    val photoSettings = viewModel.photoSettings
-    val videoSettings = viewModel.videoSettings
-    val cinemaSettings = viewModel.cinemaSettings
-    val countdown = viewModel.photoCountdownSeconds
-    val isRecording = viewModel.isRecording
+    val currentMode by viewModel.currentMode.collectAsState()
+    val photoSettings by viewModel.photoSettings.collectAsState()
+    val videoSettings by viewModel.videoSettings.collectAsState()
+    val cinemaSettings by viewModel.cinemaSettings.collectAsState()
+    val countdown by viewModel.photoCountdownSeconds.collectAsState()
+    val isRecording by viewModel.isRecording.collectAsState()
 
-    // Active aspect ratio based on mode
-    val activeRatio = when (viewModel.currentMode.value) {
-        CameraMode.PHOTO -> viewModel.photoSettings.value.aspectRatio
-        CameraMode.VIDEO -> viewModel.videoSettings.value.aspectRatio
-        CameraMode.CINEMA -> viewModel.cinemaSettings.value.aspectRatio
+    // Active aspect ratio based on mode: 3:4 for PHOTO, 9:16 for VIDEO and CINEMA (unless customized)
+    val activeRatio = when (currentMode) {
+        CameraMode.PHOTO -> photoSettings.aspectRatio
+        CameraMode.VIDEO -> videoSettings.aspectRatio
+        CameraMode.CINEMA -> cinemaSettings.aspectRatio
     }
 
     BoxWithConstraints(
@@ -85,7 +86,7 @@ fun ViewfinderContainer(
             contentAlignment = Alignment.Center
         ) {
             // Embed preview surface based on pipeline
-            if (viewModel.currentMode.value == CameraMode.CINEMA) {
+            if (currentMode == CameraMode.CINEMA) {
                 // CINEMA Mode: Dedicated OpenGL ES shader pipeline
                 AndroidView(
                     modifier = Modifier
@@ -97,7 +98,7 @@ fun ViewfinderContainer(
                                 ViewGroup.LayoutParams.MATCH_PARENT,
                                 ViewGroup.LayoutParams.MATCH_PARENT
                             )
-                            this.currentSettings = viewModel.cinemaSettings.value
+                            this.currentSettings = cinemaSettings
                             this.listener = object : CinemaGlSurfaceView.SurfaceListener {
                                 override fun onSurfaceReady(surface: Surface, width: Int, height: Int) {
                                     viewModel.cameraManager.setCinemaGlSurface(surface)
@@ -109,7 +110,7 @@ fun ViewfinderContainer(
                         }
                     },
                     update = { view ->
-                        view.currentSettings = viewModel.cinemaSettings.value
+                        view.currentSettings = cinemaSettings
                     }
                 )
             } else {
@@ -143,6 +144,9 @@ fun ViewfinderContainer(
                                 override fun onSurfaceTextureUpdated(st: SurfaceTexture) {}
                             }
                         }
+                    },
+                    update = { tv ->
+                        viewModel.cameraManager.configureTextureTransform(tv, tv.width, tv.height, activeRatio)
                     }
                 )
             }
@@ -150,13 +154,13 @@ fun ViewfinderContainer(
             // Cinema Matte overlay for 2.39:1 anamorphic ratio or framing guides
             ViewfinderReticles(
                 aspectRatio = activeRatio,
-                mode = viewModel.currentMode.value,
-                isRecording = viewModel.isRecording.value
+                mode = currentMode,
+                isRecording = isRecording
             )
 
             // Timer countdown overlay
             AnimatedVisibility(
-                visible = viewModel.photoCountdownSeconds.value > 0,
+                visible = countdown > 0,
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
@@ -167,7 +171,7 @@ fun ViewfinderContainer(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "${viewModel.photoCountdownSeconds.value}",
+                        text = "$countdown",
                         color = Color(0xFFFFB300),
                         fontSize = 72.sp,
                         fontWeight = FontWeight.Bold

@@ -20,6 +20,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,11 +38,11 @@ fun SettingsDialog(
     viewModel: CameraViewModel,
     modifier: Modifier = Modifier
 ) {
-    val isOpen = viewModel.showSettingsDialog.value
+    val isOpen by viewModel.showSettingsDialog.collectAsState()
     if (!isOpen) return
 
-    val capabilities = viewModel.capabilities.value
-    val activeLens = viewModel.activeLens.value
+    val capabilities by viewModel.capabilities.collectAsState()
+    val activeLens by viewModel.activeLens.collectAsState()
 
     Dialog(onDismissRequest = { viewModel.closeSettingsDialog() }) {
         Surface(

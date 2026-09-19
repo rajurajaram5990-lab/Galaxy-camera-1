@@ -24,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,6 +52,7 @@ fun CameraScreen(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val snackbarHostState = remember { SnackbarHostState() }
+    val currentMode by viewModel.currentMode.collectAsState()
 
     var hasCameraPermission by remember {
         mutableStateOf(
@@ -99,7 +101,7 @@ fun CameraScreen(
     }
 
     // Status message snackbar
-    val statusMsg = viewModel.statusMessage.value
+    val statusMsg by viewModel.statusMessage.collectAsState()
     LaunchedEffect(statusMsg) {
         statusMsg?.let {
             snackbarHostState.showSnackbar(it)
@@ -191,7 +193,7 @@ fun CameraScreen(
                     )
 
                     // Cinema Manual Controls (ISO, Shutter, WB, Focus, EV)
-                    if (viewModel.currentMode.value == CameraMode.CINEMA) {
+                    if (currentMode == CameraMode.CINEMA) {
                         ManualControlsBar(
                             viewModel = viewModel,
                             modifier = Modifier.fillMaxWidth()

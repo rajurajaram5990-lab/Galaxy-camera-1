@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,11 +36,12 @@ fun CinemaAssistOverlay(
     viewModel: CameraViewModel,
     modifier: Modifier = Modifier
 ) {
-    if (viewModel.currentMode.value != CameraMode.CINEMA) return
+    val mode by viewModel.currentMode.collectAsState()
+    if (mode != CameraMode.CINEMA) return
 
-    val settings = viewModel.cinemaSettings.value
-    val audioState = viewModel.audioMeterState.value
-    val histogramData = viewModel.histogramData.value
+    val settings by viewModel.cinemaSettings.collectAsState()
+    val audioState by viewModel.audioMeterState.collectAsState()
+    val histogramData by viewModel.histogramData.collectAsState()
 
     Box(
         modifier = modifier

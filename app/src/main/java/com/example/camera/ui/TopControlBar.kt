@@ -25,6 +25,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,7 +46,7 @@ fun TopControlBar(
     viewModel: CameraViewModel,
     modifier: Modifier = Modifier
 ) {
-    val mode = viewModel.currentMode.value
+    val mode by viewModel.currentMode.collectAsState()
     val scrollState = rememberScrollState()
 
     Row(
@@ -80,8 +82,8 @@ fun TopControlBar(
 
 @Composable
 private fun PhotoTopControls(viewModel: CameraViewModel) {
-    val settings = viewModel.photoSettings.value
-    val caps = viewModel.capabilities.value
+    val settings by viewModel.photoSettings.collectAsState()
+    val caps by viewModel.capabilities.collectAsState()
 
     // 1. Flash
     IconButton(
@@ -127,7 +129,7 @@ private fun PhotoTopControls(viewModel: CameraViewModel) {
         onClick = { viewModel.togglePhotoRaw() }
     )
 
-    // 4. Ratio (4:3 default, 16:9, 1:1, Full)
+    // 4. Ratio (3:4 default, 9:16, 1:1, Full)
     TopPillButton(
         label = settings.aspectRatio.displayName,
         isActive = true,
@@ -151,8 +153,8 @@ private fun PhotoTopControls(viewModel: CameraViewModel) {
 
 @Composable
 private fun VideoTopControls(viewModel: CameraViewModel) {
-    val settings = viewModel.videoSettings.value
-    val caps = viewModel.capabilities.value
+    val settings by viewModel.videoSettings.collectAsState()
+    val caps by viewModel.capabilities.collectAsState()
 
     // 1. Torch
     IconButton(
@@ -221,13 +223,15 @@ private fun VideoTopControls(viewModel: CameraViewModel) {
         }
     )
 
-    // 6. Aspect Ratio (16:9 / 9:16)
+    // 6. Aspect Ratio (9:16 / 3:4)
     TopPillButton(
         label = settings.aspectRatio.displayName,
         isActive = true,
         testTag = "video_ratio_button",
         onClick = {
-            val next = if (settings.aspectRatio == AspectRatio.RATIO_16_9) AspectRatio.RATIO_9_16 else AspectRatio.RATIO_16_9
+            val ratios = AspectRatio.forMode(CameraMode.VIDEO)
+            val idx = ratios.indexOf(settings.aspectRatio)
+            val next = ratios[(idx + 1) % ratios.size]
             viewModel.setVideoAspectRatio(next)
         }
     )
@@ -235,8 +239,8 @@ private fun VideoTopControls(viewModel: CameraViewModel) {
 
 @Composable
 private fun CinemaTopControls(viewModel: CameraViewModel) {
-    val settings = viewModel.cinemaSettings.value
-    val caps = viewModel.capabilities.value
+    val settings by viewModel.cinemaSettings.collectAsState()
+    val caps by viewModel.capabilities.collectAsState()
 
     // 1. FPS (24, 25, 30)
     TopPillButton(
@@ -304,14 +308,16 @@ private fun CinemaTopControls(viewModel: CameraViewModel) {
         onClick = { viewModel.openLutSelector() }
     )
 
-    // 6. Ratio (16:9 / 2.39:1)
+    // 6. Ratio (9:16 / 2.39:1)
     TopPillButton(
         label = settings.aspectRatio.displayName,
         isActive = true,
         testTag = "cinema_ratio_button",
         accentColor = Color(0xFFFFB300),
         onClick = {
-            val next = if (settings.aspectRatio == AspectRatio.RATIO_16_9) AspectRatio.RATIO_2_39_1 else AspectRatio.RATIO_16_9
+            val ratios = AspectRatio.forMode(CameraMode.CINEMA)
+            val idx = ratios.indexOf(settings.aspectRatio)
+            val next = ratios[(idx + 1) % ratios.size]
             viewModel.setCinemaAspectRatio(next)
         }
     )
@@ -348,7 +354,7 @@ fun TopPillButton(
                 }
             )
             .clickable(enabled = isEnabled, onClick = onClick)
-            .padding(horizontal = 8.dp, vertical = 6.dp)
+            .padding(horizontal = 10.dp, vertical = 7.dp)
             .testTag(testTag),
         contentAlignment = Alignment.Center
     ) {

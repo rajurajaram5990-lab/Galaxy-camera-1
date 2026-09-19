@@ -16,6 +16,8 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,9 +33,9 @@ fun ManualControlsBar(
     viewModel: CameraViewModel,
     modifier: Modifier = Modifier
 ) {
-    val settings = viewModel.cinemaSettings.value
-    val capabilities = viewModel.capabilities.value
-    val activeControl = viewModel.activeManualControl.value
+    val settings by viewModel.cinemaSettings.collectAsState()
+    val capabilities by viewModel.capabilities.collectAsState()
+    val activeControl by viewModel.activeManualControl.collectAsState()
     val scrollState = rememberScrollState()
 
     Column(
@@ -170,8 +172,8 @@ private fun ManualChip(
 
 @Composable
 private fun IsoSlider(viewModel: CameraViewModel) {
-    val settings = viewModel.cinemaSettings.value
-    val caps = viewModel.capabilities.value
+    val settings by viewModel.cinemaSettings.collectAsState()
+    val caps by viewModel.capabilities.collectAsState()
     val minIso = caps.isoRange.start.toFloat()
     val maxIso = caps.isoRange.endInclusive.toFloat().coerceAtLeast(1600f)
 
@@ -213,7 +215,7 @@ private fun IsoSlider(viewModel: CameraViewModel) {
 
 @Composable
 private fun ShutterSlider(viewModel: CameraViewModel) {
-    val settings = viewModel.cinemaSettings.value
+    val settings by viewModel.cinemaSettings.collectAsState()
     // Standard cinema shutter angles: 1/24, 1/48, 1/60, 1/96, 1/120, 1/240, 1/500, 1/1000
     val denominators = listOf(24, 30, 48, 50, 60, 96, 120, 240, 500, 1000, 2000, 4000)
     val currentDenom = (1_000_000_000.0 / settings.shutterNanos).roundToInt()
@@ -251,7 +253,7 @@ private fun ShutterSlider(viewModel: CameraViewModel) {
 
 @Composable
 private fun WbSlider(viewModel: CameraViewModel) {
-    val settings = viewModel.cinemaSettings.value
+    val settings by viewModel.cinemaSettings.collectAsState()
     Column {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -284,8 +286,9 @@ private fun WbSlider(viewModel: CameraViewModel) {
 
 @Composable
 private fun FocusSlider(viewModel: CameraViewModel) {
-    val settings = viewModel.cinemaSettings.value
-    val maxDist = viewModel.capabilities.value.minFocusDistance.coerceAtLeast(5.0f)
+    val settings by viewModel.cinemaSettings.collectAsState()
+    val caps by viewModel.capabilities.collectAsState()
+    val maxDist = caps.minFocusDistance.coerceAtLeast(5.0f)
     Column {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -317,8 +320,8 @@ private fun FocusSlider(viewModel: CameraViewModel) {
 
 @Composable
 private fun EvSlider(viewModel: CameraViewModel) {
-    val settings = viewModel.cinemaSettings.value
-    val caps = viewModel.capabilities.value
+    val settings by viewModel.cinemaSettings.collectAsState()
+    val caps by viewModel.capabilities.collectAsState()
     val minEv = caps.exposureCompensationRange.start.toFloat()
     val maxEv = caps.exposureCompensationRange.endInclusive.toFloat()
     Column {

@@ -17,6 +17,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,10 +38,10 @@ fun ZoomSlider(
     viewModel: CameraViewModel,
     modifier: Modifier = Modifier
 ) {
-    val currentZoom = viewModel.currentZoom.value
-    val capabilities = viewModel.capabilities.value
-    val activeLens = viewModel.activeLens.value
-    val mode = viewModel.currentMode.value
+    val currentZoom by viewModel.currentZoom.collectAsState()
+    val capabilities by viewModel.capabilities.collectAsState()
+    val activeLens by viewModel.activeLens.collectAsState()
+    val mode by viewModel.currentMode.collectAsState()
 
     var isSliderExpanded by remember { mutableStateOf(false) }
 

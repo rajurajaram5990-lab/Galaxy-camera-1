@@ -28,6 +28,7 @@ import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,10 +49,10 @@ fun LutSelectorSheet(
     viewModel: CameraViewModel,
     modifier: Modifier = Modifier
 ) {
-    val isOpen = viewModel.showLutSelector.value
+    val isOpen by viewModel.showLutSelector.collectAsState()
     if (!isOpen) return
 
-    val currentSettings = viewModel.cinemaSettings.value
+    val currentSettings by viewModel.cinemaSettings.collectAsState()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var selectedCategory by remember { mutableStateOf<String?>(null) }
     val categories = remember { CinemaLut.values().map { it.category }.distinct() }

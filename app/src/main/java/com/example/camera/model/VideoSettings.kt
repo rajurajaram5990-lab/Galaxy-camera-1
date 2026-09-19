@@ -16,6 +16,6 @@ data class VideoSettings(
     val fps: Int = 30,
     val isStabilizationEnabled: Boolean = true,
     val codec: VideoCodec = VideoCodec.H264,
-    val aspectRatio: AspectRatio = AspectRatio.RATIO_16_9,
+    val aspectRatio: AspectRatio = AspectRatio.RATIO_9_16,
     val bitrateMbps: Int = 30
 )

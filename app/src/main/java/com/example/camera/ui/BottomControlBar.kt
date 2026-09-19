@@ -29,6 +29,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -50,12 +51,13 @@ fun BottomControlBar(
     viewModel: CameraViewModel,
     modifier: Modifier = Modifier
 ) {
-    val mode = viewModel.currentMode.value
-    val isRecording = viewModel.isRecording.value
-    val recordingSeconds = viewModel.recordingTimerSeconds.value
-    val lastThumbnail = viewModel.lastThumbnail.value
-    val activeLens = viewModel.activeLens.value
-    val availableLenses = viewModel.capabilities.value.availableLenses
+    val mode by viewModel.currentMode.collectAsState()
+    val isRecording by viewModel.isRecording.collectAsState()
+    val recordingSeconds by viewModel.recordingTimerSeconds.collectAsState()
+    val lastThumbnail by viewModel.lastThumbnail.collectAsState()
+    val activeLens by viewModel.activeLens.collectAsState()
+    val capabilities by viewModel.capabilities.collectAsState()
+    val availableLenses = capabilities.availableLenses
 
     Column(
         modifier = modifier
@@ -67,37 +69,40 @@ fun BottomControlBar(
         // 1. Strictly 3 Modes Selector: PHOTO | VIDEO | CINEMA
         Row(
             modifier = Modifier
-                .padding(bottom = 16.dp)
+                .padding(bottom = 14.dp)
                 .clip(RoundedCornerShape(20.dp))
                 .background(Color(0x33000000))
-                .padding(horizontal = 6.dp, vertical = 3.dp)
+                .padding(horizontal = 4.dp, vertical = 2.dp)
                 .testTag("mode_selector"),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             CameraMode.values().forEach { m ->
                 val isSelected = m == mode
-                Text(
-                    text = m.name,
-                    fontSize = 13.sp,
-                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                    color = when {
-                        isSelected && m == CameraMode.CINEMA -> Color(0xFFFFB300)
-                        isSelected -> Color.White
-                        else -> Color(0x66FFFFFF)
-                    },
+                Box(
                     modifier = Modifier
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null
-                        ) {
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(if (isSelected) Color(0x33FFFFFF) else Color.Transparent)
+                        .clickable {
                             if (!isRecording) {
                                 viewModel.setMode(m)
                             }
                         }
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                        .testTag("mode_tab_${m.name.lowercase()}")
-                )
+                        .padding(horizontal = 14.dp, vertical = 6.dp)
+                        .testTag("mode_tab_${m.name.lowercase()}"),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = m.name,
+                        fontSize = 13.sp,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                        color = when {
+                            isSelected && m == CameraMode.CINEMA -> Color(0xFFFFB300)
+                            isSelected -> Color.White
+                            else -> Color(0x77FFFFFF)
+                        }
+                    )
+                }
             }
         }
 
@@ -164,7 +169,7 @@ fun BottomControlBar(
             ) {
                 if (lastThumbnail != null) {
                     Image(
-                        bitmap = lastThumbnail.asImageBitmap(),
+                        bitmap = lastThumbnail!!.asImageBitmap(),
                         contentDescription = "Last media thumbnail",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.size(52.dp)
@@ -230,6 +235,7 @@ private fun ShutterButton(
             .size(76.dp)
             .border(3.dp, Color.White, CircleShape)
             .padding(5.dp)
+            .clickable(onClick = onClick)
             .testTag("master_shutter_button"),
         contentAlignment = Alignment.Center
     ) {
@@ -241,7 +247,6 @@ private fun ShutterButton(
                         .size(60.dp)
                         .clip(CircleShape)
                         .background(Color.White)
-                        .clickable(onClick = onClick)
                         .testTag("photo_shutter_disc")
                 )
             }
@@ -252,7 +257,6 @@ private fun ShutterButton(
                         .size(if (isRecording) 30.dp else 58.dp)
                         .clip(if (isRecording) RoundedCornerShape(8.dp) else CircleShape)
                         .background(Color(0xFFFF3B30))
-                        .clickable(onClick = onClick)
                         .testTag("video_record_disc")
                 )
             }
@@ -264,7 +268,6 @@ private fun ShutterButton(
                         .clip(if (isRecording) RoundedCornerShape(6.dp) else RoundedCornerShape(16.dp))
                         .background(if (isRecording) Color(0xFFFF3B30) else Color(0xFFE50914))
                         .border(2.dp, Color(0xFFFFB300), if (isRecording) RoundedCornerShape(6.dp) else RoundedCornerShape(16.dp))
-                        .clickable(onClick = onClick)
                         .testTag("cinema_shutter_disc")
                 )
             }

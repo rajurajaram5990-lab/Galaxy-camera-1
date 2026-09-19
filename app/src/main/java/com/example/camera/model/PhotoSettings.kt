@@ -10,7 +10,7 @@ data class PhotoSettings(
     val flashMode: FlashMode = FlashMode.AUTO,
     val isHdrEnabled: Boolean = false,
     val isRawEnabled: Boolean = false,
-    val aspectRatio: AspectRatio = AspectRatio.RATIO_4_3,
+    val aspectRatio: AspectRatio = AspectRatio.RATIO_3_4,
     val timerSeconds: Int = 0, // 0 = off, 3, 10
     val highQualityNoiseReduction: Boolean = true
 )
